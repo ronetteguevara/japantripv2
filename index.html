@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Tokyo Birthday Trip</title>
+<style>
+/* Layout: phone-first trip companion. Ticket-stub day picker, timetable rows, tabbed sections. */
+:root{
+  --bg:#ffffff; --surface:#ffffff; --ink:#111111; --muted:#555555; --line:#d6d6d6;
+  --indigo:#111111; --indigo-soft:#f0f0f0; --matcha:#111111; --matcha-soft:#ececec;
+  --plum:#111111; --amber:#333333; --amber-soft:#f4f4f4;
+  --c-food:#b71c1c; --c-sweet:#1b5e20; --c-bars:#5e35b1; --c-photo:#0d47a1; --c-shop:#8a4b00; --c-special:#ad1457; --c-art:#00695c; --c-travel:#424242; --c-on:#ffffff;
+  --display:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  --body:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono:"Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000000; --surface:#111111; --ink:#f2f2f2; --muted:#a8a8a8; --line:#333333;
+  --indigo:#f2f2f2; --indigo-soft:#222222; --matcha:#f2f2f2; --matcha-soft:#262626;
+  --plum:#f2f2f2; --amber:#d0d0d0; --amber-soft:#1a1a1a;
+  --c-food:#ff8a80; --c-sweet:#81c784; --c-bars:#b39ddb; --c-photo:#90caf9; --c-shop:#ffcc80; --c-special:#f48fb1; --c-art:#80cbc4; --c-travel:#bdbdbd; --c-on:#000000; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#111111; --ink:#f2f2f2; --muted:#a8a8a8; --line:#333333;
+  --indigo:#f2f2f2; --indigo-soft:#222222; --matcha:#f2f2f2; --matcha-soft:#262626;
+  --plum:#f2f2f2; --amber:#d0d0d0; --amber-soft:#1a1a1a;
+  --c-food:#ff8a80; --c-sweet:#81c784; --c-bars:#b39ddb; --c-photo:#90caf9; --c-shop:#ffcc80; --c-special:#f48fb1; --c-art:#80cbc4; --c-travel:#bdbdbd; --c-on:#000000; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 64px}
+header.top{display:flex;flex-direction:column;gap:6px;padding-block:8px 14px}
+.eyebrow{font-family:var(--mono);font-size:14px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(32px,8vw,46px);line-height:1.1;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0}
+.flights{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-block:14px 6px}
+.fl{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fl b{font-family:var(--mono);font-size:15px;color:var(--indigo)}
+.fl span{font-size:15px;color:var(--muted)}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:6px;padding-block:10px;border-bottom:1px solid var(--line);margin-bottom:16px}
+nav.tabs button{flex:1;font:inherit;font-weight:700;font-size:16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 6px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:thin}
+.day{flex:0 0 auto;width:68px;font:inherit;cursor:pointer;background:var(--surface);color:var(--ink);border:1px dashed var(--line);border-radius:8px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:0}
+.day .dow{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.06em}
+.day .dn{font-family:var(--display);font-weight:900;font-size:28px;line-height:1.1}
+.day .mo{font-size:12px;color:var(--muted)}
+.day[aria-selected="true"]{border:1px solid var(--indigo);background:var(--indigo-soft)}
+.day.bday .dn{color:var(--plum)}
+
+.dayhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px;margin-bottom:6px}
+.dayhead h2{font-family:var(--display);font-weight:900;font-size:25px;margin:0}
+.dayhead p{margin:0;color:var(--muted);font-size:15px}
+.light{--gold:#6e4600;--gold-bg:#fff3d1;--gold-line:#f2b705;background:var(--gold-bg);border:1px solid var(--gold-line);border-left:5px solid var(--gold-line);border-radius:10px;padding:10px 12px;margin:6px 0 8px;display:flex;flex-direction:column;gap:6px}
+.lt{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.lt i{font-style:normal;font-family:var(--body);font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-right:6px;color:var(--gold);opacity:.8}
+.light p{margin:0;font-size:16px;color:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .light{--gold:#ffd166;--gold-bg:#2a2006;--gold-line:#c99700}}
+:root[data-theme="dark"] .light{--gold:#ffd166;--gold-bg:#2a2006;--gold-line:#c99700}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:8px}
+.shot{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sh{display:flex;flex-direction:column;gap:2px}
+.sw{font-family:var(--mono);font-size:14px;color:var(--amber)}
+.shot p{margin:0;font-size:16px;color:var(--muted)}
+.sl{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:auto}
+.sl a{font-size:15px;color:var(--indigo);text-decoration:none;padding-block:4px}
+.sl a:hover{text-decoration:underline}
+
+.tblwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.lighttbl{width:100%;border-collapse:collapse;font-size:16px;min-width:520px}
+.lighttbl th{text-align:left;font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line)}
+.lighttbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.lighttbl tr:last-child td{border-bottom:0}
+.lighttbl .num{font-family:var(--mono);color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lighttbl .sp{color:var(--muted);font-size:15px}
+.lighttbl tr.grp td{background:var(--amber-soft);color:var(--amber);font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px}
+.recipe{min-width:560px}
+ol.stops{list-style:none;margin:0;padding:0}
+ol.stops li{display:grid;grid-template-columns:76px 1fr;gap:12px;padding-block:12px;border-bottom:1px solid var(--line)}
+.t{font-family:var(--mono);font-size:15px;color:var(--indigo);padding-top:2px;font-variant-numeric:tabular-nums}
+.s{min-width:0;display:flex;flex-direction:column;gap:3px}
+.s .n{font-weight:700;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.s .b{color:var(--muted);font-size:16px}
+.s a.map{font-size:14px;color:var(--indigo);text-decoration:none;width:max-content}
+.s a.map:hover{text-decoration:underline}
+.go{font-size:15px;color:var(--ink);background:var(--indigo-soft);border-radius:8px;padding:7px 10px;margin-top:4px}
+.go span{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--indigo);margin-bottom:2px}
+.nav{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:6px}
+.navbtn{font-size:15px;font-weight:700;background:var(--indigo);color:var(--surface);text-decoration:none;border-radius:999px;padding:7px 14px;min-height:36px;display:inline-flex;align-items:center}
+.joinbtn{margin-top:6px;width:max-content}
+.linktxt{display:block;font-family:var(--mono);font-size:13px;color:var(--muted);word-break:break-all;user-select:all;margin-top:4px}
+.navlink{font-size:15px;color:var(--indigo);text-decoration:none;padding-block:6px}
+.navlink:hover,.navbtn:hover{text-decoration:underline}
+.tag{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:2px 6px;border-radius:4px;background:var(--indigo-soft);color:var(--indigo);font-weight:500}
+.tag.FOOD,.tag.DINNER,.tag.OMAKASE{background:var(--amber-soft);color:var(--amber)}
+.tag.MATCHA,.tag.SNACK,.tag.DEVELOP{background:var(--matcha-soft);color:var(--matcha)}
+.tag.BARS,.tag.BIRTHDAY,.tag.BLOCK,.tag.SAUNA,.tag.PHOTO,.tag.KIMONO{background:color-mix(in srgb,var(--plum) 14%,var(--surface));color:var(--plum)}
+.bk{font-size:13px;font-weight:700;color:var(--plum)}
+
+section h2.sec{font-family:var(--display);font-weight:900;font-size:25px;margin:22px 0 4px}
+section h2.sec:first-child{margin-top:0}
+section p.note{color:var(--muted);margin:0 0 10px;font-size:16px}
+.prog{font-family:var(--mono);font-size:14px;color:var(--muted);margin-bottom:6px}
+ul.check{list-style:none;margin:0 0 6px;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+ul.check li{border-bottom:1px solid var(--line)}
+ul.check li:last-child{border-bottom:0}
+ul.check label{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:12px;cursor:pointer}
+ul.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--c-sweet)}
+.ci{min-width:0;display:flex;flex-direction:column;gap:2px}
+.ci .ct{font-weight:700}
+.ci .cw{font-family:var(--mono);font-size:14px;color:var(--indigo)}
+.ci .cd{font-size:16px;color:var(--muted)}
+.ci a{color:var(--indigo)}
+ul.check li.done{background:color-mix(in srgb,var(--c-sweet) 14%,var(--surface));box-shadow:inset 4px 0 0 var(--c-sweet)}
+ul.check li.done:first-child{border-radius:10px 10px 0 0} ul.check li.done:last-child{border-radius:0 0 10px 10px} ul.check li.done:only-child{border-radius:10px}
+li.done .ct{text-decoration:line-through;color:var(--c-sweet)}
+li.done .cw,li.done .cd{color:var(--c-sweet)}
+.callout{background:var(--amber-soft);border-radius:10px;padding:12px 14px;margin:8px 0 12px;font-size:16px}
+.callout b{color:var(--amber)}
+.plain{margin:0 0 6px;padding-left:18px}
+.plain li{margin-bottom:6px}
+footer{margin-top:28px;color:var(--muted);font-size:14px}
+
+
+/* Category color-coding: black & white theme, color only marks stop types */
+ol.stops li{border-left:4px solid transparent;padding-left:10px}
+ol.stops li.cat-food{border-left-color:var(--c-food)} ol.stops li.cat-sweet{border-left-color:var(--c-sweet)}
+ol.stops li.cat-bars{border-left-color:var(--c-bars)} ol.stops li.cat-photo{border-left-color:var(--c-photo)}
+ol.stops li.cat-shop{border-left-color:var(--c-shop)} ol.stops li.cat-art{border-left-color:var(--c-art)} ol.stops li.cat-travel{border-left-color:var(--c-travel)} ol.stops li.cat-special{border-left-color:var(--c-special)}
+.tag.cat-food{background:var(--c-food);color:var(--c-on);font-weight:700}
+.tag.cat-sweet{background:var(--c-sweet);color:var(--c-on);font-weight:700}
+.tag.cat-bars{background:var(--c-bars);color:var(--c-on);font-weight:700}
+.tag.cat-photo{background:var(--c-photo);color:var(--c-on);font-weight:700}
+.tag.cat-shop{background:var(--c-shop);color:var(--c-on);font-weight:700}
+.tag.cat-art{background:var(--c-art);color:var(--c-on);font-weight:700}
+.tag.cat-travel{background:var(--c-travel);color:var(--c-on);font-weight:700}
+.tag.cat-special{background:var(--c-special);color:var(--c-on);font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 10px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* Light-page time colors */
+:root{--h-sun:#b33a00;--h-sun-bg:#ffe3d3;--h-gold:#7a4d00;--h-gold-bg:#fff0c2;--h-blue:#0b48a6;--h-blue-bg:#dceaff;--h-night:#2e2a7a;--h-night-bg:#e3e1fb}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--h-sun:#ffb38a;--h-sun-bg:#3a1a08;--h-gold:#ffd166;--h-gold-bg:#2e2306;--h-blue:#9cc4ff;--h-blue-bg:#0d1f3d;--h-night:#c4c0ff;--h-night-bg:#1c1a3d}}
+:root[data-theme="dark"]{--h-sun:#ffb38a;--h-sun-bg:#3a1a08;--h-gold:#ffd166;--h-gold-bg:#2e2306;--h-blue:#9cc4ff;--h-blue-bg:#0d1f3d;--h-night:#c4c0ff;--h-night-bg:#1c1a3d}
+.hr{display:inline-block;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.h-sun{color:var(--h-sun);background:var(--h-sun-bg)} .h-gold{color:var(--h-gold);background:var(--h-gold-bg)} .h-blue{color:var(--h-blue);background:var(--h-blue-bg)}
+.lighttbl th.h-sun-t{color:var(--h-sun)} .lighttbl th.h-gold-t{color:var(--h-gold)} .lighttbl th.h-blue-t{color:var(--h-blue)}
+.lighttbl tr.grp.g-gold td{background:var(--h-gold-bg);color:var(--h-gold);font-weight:700}
+.lighttbl tr.grp.g-blue td{background:var(--h-blue-bg);color:var(--h-blue);font-weight:700}
+.lighttbl tr.grp.g-night td{background:var(--h-night-bg);color:var(--h-night);font-weight:700}
+
+/* Navigation row: three equal pills on one line */
+.nav{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;margin-top:8px}
+.nav .navbtn,.nav .navlink{flex:1 1 0;min-width:0;justify-content:center;text-align:center;white-space:nowrap;font-size:14px;font-weight:700;border-radius:999px;padding:8px 6px;min-height:38px;display:inline-flex;align-items:center;text-decoration:none}
+.nav .navlink{border:1.5px solid var(--indigo);color:var(--indigo);background:var(--surface)}
+@media (max-width:380px){.nav .navbtn,.nav .navlink{font-size:13px;padding:8px 4px}}
+
+/* Shopping list */
+.linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--indigo);text-decoration:underline;cursor:pointer}
+.shopadd{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin:0 0 10px}
+.shopadd input,.shopadd select{font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-width:0}
+.shopadd .navbtn{border:0;cursor:pointer;justify-content:center}
+.shopgrp{font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+ul.check li{position:relative}
+ul.check .del{position:absolute;right:8px;top:10px;border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:4px 8px;cursor:pointer}
+ul.check.shop label{padding-right:40px}
+@media (max-width:600px){.shopadd{grid-template-columns:1fr auto}.shopadd #shop-where{grid-column:1/2;grid-row:2}}
+/* Phone layout */
+@media (max-width:600px){
+  body{font-size:17px}
+  .wrap{padding-block:12px 56px}
+  h1{font-size:34px}
+  .flights{grid-template-columns:1fr;gap:8px}
+  nav.tabs{gap:4px;margin-inline:-16px;padding-inline:16px}
+  nav.tabs button{font-size:15px;padding:10px 4px;min-height:44px}
+  .days{position:sticky;top:calc(env(safe-area-inset-top,0px) + 65px);z-index:4;background:var(--bg);margin-inline:-16px;padding:8px 16px 8px;border-bottom:1px solid var(--line)}
+  .day{width:58px;padding:6px 2px}
+  .day .dn{font-size:23px}
+  ol.stops li{grid-template-columns:1fr;gap:2px;padding-block:12px}
+  .t{padding-top:0}
+  .s a.map{padding-block:6px;font-size:15px}
+  ul.check label{padding:14px 12px}
+  .tblwrap{overflow:visible;background:none;border:0}
+  .lighttbl,.recipe{min-width:0}
+  .lighttbl thead{display:none}
+  .lighttbl,.lighttbl tbody,.lighttbl tr,.lighttbl td{display:block;width:100%}
+  .lighttbl tr{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:8px 0}
+  .lighttbl td{border:0;padding:4px 12px}
+  .lighttbl td[data-label]:not(:first-child){display:flex;justify-content:space-between;gap:12px}
+  .lighttbl td[data-label]:not(:first-child)::before{content:attr(data-label);font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);flex:0 0 auto}
+  .lighttbl tr.grp{background:none;border:0;padding:12px 0 2px;margin:0}
+  .lighttbl tr.grp td{background:none;padding:0}
+  .lighttbl tr.grp.g-gold td,.lighttbl tr.grp.g-blue td,.lighttbl tr.grp.g-night td{padding:6px 10px;border-radius:8px;display:inline-block;width:auto}
+
+  .recipe td[data-label]:not(:first-child){display:inline-flex;width:auto;flex-direction:column;gap:0;padding:4px 12px 4px 12px}
+  .recipe td[data-label]:not(:first-child)::before{font-size:12px}
+  .lighttbl .num{white-space:nowrap}
+  .lighttbl td[data-label]:not(:first-child){flex-wrap:wrap}
+  .lighttbl td:not(:first-child) br{display:none}
+  .lighttbl td:first-child .sp{display:block;margin-top:2px}
+  .lighttbl td .sp{flex-basis:100%;margin-top:2px}
+  .lighttbl td[data-label]:not(:first-child) .num{margin-left:auto}
+}
+@media (prefers-reduced-motion:no-preference){.panel{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Tokyo · Nov 8–13, 2026</div>
+    <h1>Tokyo Birthday Trip</h1>
+    <p class="sub">Home base: OMO5 Tokyo Otsuka. Nights wrap by 11 PM.</p>    <div class="flights">
+      <div class="fl"><b>ZG025 · SFO → NRT T1</b><span>Sat 11/7 3:35 PM → Sun 11/8 7:55 PM</span></div>
+      <div class="fl"><b>ZG026 · NRT T1 → SFO</b><span>Fri 11/13 9:25 PM → Fri 11/13 1:35 PM</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-days" data-tab="days">Days</button>
+    <button role="tab" id="tab-book" data-tab="book">Book</button>
+    <button role="tab" id="tab-light" data-tab="light">Light</button>
+    <button role="tab" id="tab-prep" data-tab="prep">Prep</button>
+    <button role="tab" id="tab-shop" data-tab="shop">Shop</button>
+  </nav>
+
+  <section class="panel" id="panel-days">
+    <div class="days" id="daypicker" role="tablist" aria-label="Trip days"></div>
+    <p class="note" style="margin:0 0 8px;font-size:15px;color:var(--muted)">Suica works on every train, subway and bus. Tap "Navigate" for live directions from wherever you are, "From last stop" to preview the leg, or "Map" to see the place.</p>
+        <div id="dayview"></div>
+  </section>
+
+  <section class="panel" id="panel-book" hidden>
+    <h2 class="sec">Reserve now</h2>
+    <p class="note">It's early October, so book these first. Tick them off as you go (saved on this device).</p>
+    <div class="prog" id="prog-now"></div>
+    <ul class="check" id="list-now"></ul>
+    <h2 class="sec">Optional</h2>
+    <ul class="check" id="list-opt"></ul>
+    <h2 class="sec">No reservation needed</h2>
+    <p class="note">Golden Gai, Omoide Yokocho, Tsukiji, I'm FREE, and all the shops.</p>
+  </section>
+
+  <section class="panel" id="panel-light" hidden>
+    <h2 class="sec">Golden hour at a glance</h2>
+    <p class="note">Sunset times are from Japan's National Astronomical Observatory. Golden hour starts about 45 minutes before sunset, and blue hour lasts about 25 minutes after. Both windows are estimates.</p>
+    <div class="tblwrap"><table class="lighttbl">
+      <thead><tr><th>Day</th><th class="h-sun-t">Sunset</th><th class="h-gold-t">Golden hour</th><th class="h-blue-t">Blue hour</th></tr></thead>
+      <tbody id="lightrows"></tbody>
+    </table></div>
+    <h2 class="sec">Shot list</h2>
+    <p class="note">The shot to get at each photo stop, in trip order. Each card links to a photographer's guide to the spot (where one exists), the Instagram hashtag, and a Pinterest search of real shots taken there. Instagram links open best in the app on your phone.</p>
+    <div class="shots" id="shotlist"></div>
+
+    <h2 class="sec">Exposure recipes</h2>
+    <p class="note">These are starting settings for each scene. Always meter and bracket a stop either way. On film, err toward overexposing, because color negative film handles too much light far better than too little. On digital, use the same settings, or push ISO to 1600–3200 for faster shutters.</p>
+    <div class="tblwrap"><table class="lighttbl recipe">
+      <thead><tr><th>Scene</th><th>Film</th><th>ISO</th><th>Aperture</th><th>Shutter</th></tr></thead>
+      <tbody>
+        <tr class="grp g-gold"><td colspan="5">Golden hour · ~3:55–4:40</td></tr>
+        <tr><td><b>Portraits in golden light</b><br><span class="sp">Open aperture blurs the street. Put the sun behind or beside you.</span></td><td>Portra 400</td><td class="num">400</td><td class="num">f/2.8</td><td class="num">1/1000</td></tr>
+        <tr><td><b>Warm light on buildings</b><br><span class="sp">Omotesando trees (Mon), Ginza from the GINZA SIX rooftop (Tue), Sensō-ji's pagoda (Thu).</span></td><td>Portra 400</td><td class="num">400</td><td class="num">f/8</td><td class="num">1/125</td></tr>
+        <tr><td><b>Backlit or last light, sun near the horizon</b><br><span class="sp">Silhouettes, Sensō-ji's pagoda in Asakusa. Meter the sky to keep the color.</span></td><td>Portra 400</td><td class="num">400</td><td class="num">f/4</td><td class="num">1/125</td></tr>
+        <tr><td><b>Sakura Tram streetcar passing</b><br><span class="sp">Otsuka-ekimae, on your Wednesday morning stroll. Fast enough to freeze the tram.</span></td><td>Portra 400</td><td class="num">400</td><td class="num">f/4</td><td class="num">1/250</td></tr>
+        <tr class="grp g-blue"><td colspan="5">Blue hour · ~4:40–5:05</td></tr>
+        <tr><td><b>Skyline lit up (GINZA SIX rooftop, New York Bar)</b><br><span class="sp">Handheld. Brace on a railing.</span></td><td>CineStill 800T</td><td class="num">800</td><td class="num">f/2.8</td><td class="num">1/60</td></tr>
+        <tr><td><b>Through glass (New York Bar, 52nd floor)</b><br><span class="sp">Lens hood flat on the window.</span></td><td>CineStill 800T</td><td class="num">800</td><td class="num">f/2</td><td class="num">1/60</td></tr>
+        <tr><td><b>Neon canyon, car light trails (Akihabara)</b><br><span class="sp">Brace on a railing or a post. Catch traffic streaking under the billboards.</span></td><td>CineStill 800T</td><td class="num">800</td><td class="num">f/8</td><td class="num">1/4</td></tr>
+        <tr class="grp g-night"><td colspan="5">Night · after 5:05</td></tr>
+        <tr><td><b>Neon streets (Akihabara, Shibuya)</b><br><span class="sp">Signs are bright, so meter the street, not the sign.</span></td><td>CineStill 800T</td><td class="num">800</td><td class="num">f/2</td><td class="num">1/60</td></tr>
+        <tr><td><b>Narrow alleys (Golden Gai)</b><br><span class="sp">Darker lanes. Hold your breath and shoot in bursts.</span></td><td>CineStill 800T</td><td class="num">800</td><td class="num">f/2</td><td class="num">1/30</td></tr>
+        <tr><td><b>Lanterns and grill smoke (Omoide Yokocho)</b><br><span class="sp">Warm, low light. Smoke catches the lanterns beautifully.</span></td><td>CineStill 800T</td><td class="num">800</td><td class="num">f/1.8</td><td class="num">1/30</td></tr>
+        <tr><td><b>Long exposure (only if you bring a tripod)</b><br><span class="sp">Light trails on Akihabara's Chuo-dori or at the Ginza 4-chome crossing. Avoid crowded sidewalks.</span></td><td>Portra 400</td><td class="num">400</td><td class="num">f/11</td><td class="num">4–8s</td></tr>
+      </tbody>
+    </table></div>
+    <ul class="plain">
+      <li><b>Why CineStill 800T at night:</b> It's balanced for artificial light, so neon and lanterns look natural instead of orange, and bright signs get its signature red halo.</li>
+      <li><b>Shutter rule of thumb:</b> Handheld, don't go slower than 1/your focal length (1/30 or faster on a 35mm lens) unless you're braced.</li>
+      <li><b>Where to buy film:</b> Yodobashi Camera and Kitamura Camera in Shinjuku, both Monday stops, and Bic Camera as a backup. Stock varies, so if CineStill 800T is sold out, Portra 800 is the closest swap for night shots.</li>
+      <li><b>Developing plan:</b> Wednesday at 10 AM, drop Monday's and Tuesday's rolls at Kitamura LABI Ikebukuro (scans to your phone that day). Negatives are usually ready by Friday: Friday is a free day and LABI is 1 stop from the hotel, so pick them up before your 5 PM car. Rolls from Wednesday afternoon on go home with you for your lab there. Backup: Yellow Jacket in Sendagi emails scans within a few hours (closed Wednesdays).</li>
+      <li><b>Film at the airport:</b> At Narita and SFO security, ask for a hand check of film in your carry-on. Never put film in checked bags.</li>
+    </ul>
+
+    <h2 class="sec">Night shooting tips</h2>
+    <ul class="plain">
+      <li><b>Tripods:</b> Leave the tripod behind. Bars like New York Bar won't allow them, and they're impractical in Akihabara, Golden Gai and Omoide Yokocho. Use a fast lens and push ISO.</li>
+      <li><b>Shooting through glass:</b> Press a rubber lens hood flat against the window to kill reflections.</li>
+      <li><b>Rain:</b> Wet streets double the neon, so a drizzly night is a good night to shoot.</li>
+      <li><b>People:</b> In Golden Gai and Omoide Yokocho, shoot the lanes, not people's faces, and ask first.</li>
+    </ul>
+  </section>
+
+  <section class="panel" id="panel-shop" hidden>
+    <h2 class="sec">Shopping list</h2>
+    <p class="note">Tick items off as you buy them, and add new ones as you go. Saved on this device.</p>
+    <form class="shopadd" id="shopform" autocomplete="off">
+      <input id="shop-item" type="text" placeholder="Add an item" aria-label="Item" required>
+      <select id="shop-where" aria-label="Where or when"></select>
+      <button type="submit" class="navbtn">Add</button>
+    </form>
+    <div class="prog" id="prog-shop"></div>
+    <div id="shoplists"></div>
+    <p class="note" style="margin-top:12px">Tax-free tip: bring your passport, spend ¥5,000+ per store per day, and keep items sealed until the refund kiosk at Narita.</p>
+  </section>
+
+  <section class="panel" id="panel-prep" hidden>
+    <h2 class="sec">Before you fly</h2>
+    <ul class="check" id="list-prep"></ul>
+
+    <h2 class="sec">Tax-free changed on Nov 1</h2>
+    <div class="callout"><b>Pay full price now, get the 10% back at Narita.</b> This applies to the camera, clothes and whisky.</div>
+    <ul class="plain">
+      <li><b>In stores:</b> Show your passport. You pay full price, tax included. The minimum is ¥5,000 before tax, per store, per day. Ask how they'll send the refund.</li>
+      <li><b>At Narita, 11/13:</b> Before you check bags, scan your passport at a tax-free kiosk in the departure lobby. If it flags an inspection, show customs the items.</li>
+      <li><b>Keep everything unused</b> and with you until then. You can't get anything back out of checked luggage.</li>
+    </ul>
+
+    <h2 class="sec">On the ground</h2>
+    <ul class="plain">
+      <li><b>Passport:</b> Carry the physical passport every day. Japan requires it, and you need it for tax-free.</li>
+      <li><b>Cash:</b> Bring yen for Golden Gai cover charges and Tsukiji stalls. 7-Eleven ATMs take US cards.</li>
+      <li><b>Cover charges:</b> At yokocho and Golden Gai bars, ask about the charge before ordering.</li>
+          </ul>
+
+    <h2 class="sec">Coming home</h2>
+    <ul class="plain">
+      <li><b>US customs:</b> $800 duty-free per person, including about 1 liter of alcohol. More whisky is fine, but you'll pay a small duty. Declare it all.</li>
+      <li><b>Whisky:</b> Over 100 ml can't go in your carry-on, so pack it in checked bags with bottle sleeves.</li>
+      <li><b>Getting to Narita:</b> Car pickup at OMO5 at 5:00 PM, about 60–90 min to Terminal 1 depending on traffic. You'll arrive around 6:00–6:30 PM, well ahead of the 9:25 PM flight.</li>
+    </ul>
+  </section>
+
+  <footer>Hours and policies were checked in early October 2026. Recheck anything time-sensitive close to the trip.</footer>
+</div>
+
+<script>
+const DAYS=[
+ {id:"d8",dow:"SUN",d:8,sun:"4:40",gold:"3:55",blue:"5:05",spot:"You're still in the air at Tokyo sunset. No photo plan tonight. Rest up.",title:"Arrival",note:"Land, private car in, sleep.",stops:[
+  ["7:55 PM","Land at Narita T1 (ZG025)","Have your Visit Japan Web QR codes ready.","TRAVEL","Narita Airport Terminal 1"],
+  ["8:45 PM","Private transfer to OMO5 (booked)","BOOKED. Large people carrier from Narita to OMO5 Tokyo Otsuka, about 1 hr 15 min. Flight tracking is on, so pickup adjusts if ZG025 is delayed, and the driver waits 45 min after landing at the meeting point. Check the Pick-up details tab in the booking app for the exact meeting point and driver contact. Note the app shows the flight as \"ZG*25\"; tap Edit flight details to confirm it reads ZG025.","TRAVEL","Narita Airport Terminal 1"],
+  ["10:00 PM","Check in at OMO5 Otsuka","Konbini snack run, then sleep.","TRAVEL","OMO5 Tokyo Otsuka"]]},
+ {id:"d9",dow:"MON",d:9,sun:"4:39",gold:"3:54",blue:"5:04",spot:"Golden hour: the zelkova trees on Omotesando glow as you walk from Cat Street to mofusand. Blue hour: Omotesando and Shibuya light up before your 6:30 dinner.",title:"Camera, clothes, Shibuya",note:"Shinjuku → Harajuku → Shibuya → Ikebukuro",stops:[
+  ["10:00 AM","Ikedaya Tea Store","Marukyu Koyamaen. Be there at opening, before grades sell out. It's in Odakyu Ace South, inside Shinjuku Station.","TEA","Ikedaya TeaStore Matcha Shinjuku"],
+  ["10:20 AM", "Yodobashi Camera Shinjuku", "Bring your passport for tax-free. FILM: stock up at the film counter. For this trip, plan on about 4 rolls of Portra 400 (golden hour) and 4–6 of CineStill 800T (night), plus 1–2 spares. LENS: ask for the Panasonic LEICA DG SUMMILUX 25mm F1.4 (Micro Four Thirds). The Mark II is H-XA025; the cheaper Mark I is H-X025, so check both new and in the used case. BEAUTY: find the YA-MAN Photo PLUS Shiny face device on the beauty-appliance floor (about ¥55,000; the newer Shiny Neo is ¥69,300). Show staff your screenshot, ask for a US-compatible charger (海外で使えますか, kaigai de tsukaemasu ka?), and buy tax-free. Backups: Isetan beauty floors (1:10 today) or Bic Camera Ikebukuro near the hotel.", "CAMERA", "Yodobashi Camera Shinjuku General Camera store"],
+  ["11:05 AM", "five star camera", "Used cameras, a favorite with film shooters. Big range of used film bodies and old digicams, with patient English-speaking staff. Opens at 11. LENS: ask for a used Panasonic LEICA DG SUMMILUX 25mm F1.4, especially the cheaper Mark I (H-X025); the Mark II is H-XA025. Check the glass for haze or scratches and try autofocus on a body before buying.", "CAMERA", "five star camera Nishishinjuku"],
+  ["12:00 PM", "Katsu Pulipo", "BOOKED for 12:00. Premium tonkatsu in Kabukicho. Lunch opens at noon, so you get first pick before popular cuts like the Diamond Pork sell out. The sign outside may say \"Pretty Pork Factory.\" Several reviewers say their pork came out well done, so ask for it slightly pink (少しピンクで, sukoshi pinku de) when you order.", "FOOD", "Katsu Pulipo Kabukicho", true],
+  ["12:55 PM", "Shinjuku Kitamura Camera", "Compare used and film bodies. FILM: buy here if Yodobashi is out of a stock.", "CAMERA", "Shinjuku Kitamura Camera"],
+  ["1:10 PM", "BEAMS JAPAN + Isetan Shinjuku", "Japanese labels, then Isetan's fashion floors.", "CLOTHES", "BEAMS JAPAN Shinjuku"],
+  ["2:00 PM", "Azuki to Kōri", "Dessert after your tonkatsu lunch. Seasonal kakigori shaved ice made like an omakase at the counter. Everyone must order one item, and kakigori counts. Reservation required: bookings open 7 days ahead at 9 PM JST, so book on Mon 11/2 at 9 PM JST (4 AM PST). Card only. Closed Wednesdays.", "SWEETS", "Azuki to Kori Yoyogi", true],
+  ["2:55 PM", "Cat Street", "Harajuku boutiques, streetwear and vintage shops along the backstreet between Harajuku and Shibuya.", "CLOTHES", "Cat Street Harajuku"],
+  ["4:15 PM", "mofusand TOKYO", "The mofusand cat shop. It's tiny and only stocks the current seasonal collection, so it's a quick browse. If it's busy, staff may ask you to queue outside. For the full range, the Tokyo Station shop is bigger. Open 12–8 PM.", "SHOP", "mofusand TOKYO Jingumae 3-23-6"],
+  ["6:30 PM", "Sushi Tokyo Ten Shibuya", "BOOKED for 6:30 PM. Counter omakase in Shibuya Stream, 3F. Arrive a few minutes early.", "FOOD", "Sushi Tokyo Ten Shibuya", true],
+  ["8:40 PM", "I'm FREE Ikebukuro East", "Quick stop to buy CBD edibles (about 15 min). Japan is very strict about THC, so buy only what the shop sells, and finish them in Japan: don't pack them for Narita or US customs. Then 1 stop home.", "SHOP", "I'm FREE Ikebukuro East Store Higashiikebukuro 1-13-12"]]},
+ {id:"d10",dow:"TUE",d:10,sun:"4:38",gold:"3:53",blue:"5:03",spot:"Golden hour and sunset over the Ginza skyline from the free GINZA SIX rooftop. Blue hour falls during dinner, so shoot the Seiko clock tower at the 4-chome crossing at night on the way to the station.",title:"Tsukiji + a full Ginza day",note:"Tsukiji breakfast, Sembikiya fruit, Ginza shopping, rooftop sunset, Sushi Den omakase, private sauna, early night",stops:[
+  ["8:30 AM", "Tsukiji Outer Market", "FOOD PICK. Go early before it gets packed (after 9 AM). Tamagoyaki, tuna and uni bowls, grilled scallops. Bring cash.", "FOOD", "Tsukiji Outer Market"],
+  ["11:00 AM", "Ginza Sembikiya", "FRUIT. Tokyo's famous luxury fruit shop since 1894, at opening time. Upstairs (2F) is the fruit parlour: get a musk melon or seasonal parfait. Downstairs (1F) sells perfect fruit: melon, grapes and seasonal persimmons and strawberries. You can't eat inside the shop, so enjoy it at the hotel. Fresh fruit can't go through US customs, so eat it all in Japan.", "SWEETS", "Ginza Sembikiya 5-5-1"],
+  ["12:30 PM", "Mitsukoshi Ginza food floors", "Matcha backup. Check the tea counters for Marukyu Koyamaen if Ikedaya sold out. Grab a light depachika lunch.", "FOOD", "Mitsukoshi Ginza"],
+  ["1:10 PM", "Itoya Ginza", "ART. 12 floors of paper, pens and art supplies, with a café upstairs. Loft is a minute away.", "ART", "Ginza Itoya"],
+  ["1:45 PM", "Ginza Loft", "Five floors of stationery, gadgets, cosmetics and souvenirs. Good matcha shelf on 1F. Tax-free counter on 3F (join the queue before 8 PM).", "SHOP", "Ginza Loft"],
+  ["2:10 PM", "MUJI Ginza (optional)", "Quick browse.", "SHOP", "MUJI Ginza"],
+  ["2:30 PM", "Life Vacation Ginza (whisky)", "Whisky to fly home with. Reviewers say it has some of the best prices in Ginza, with hard-to-find Hibiki and Yamazaki and English-speaking staff. Tax-free with your passport. Open 11 AM–8 PM. It faces a side street, not the corner.", "WHISKY", "WHISKY STORE LIFE VACATION GINZA 5-9-5"],
+  ["2:50 PM", "Jule's Whisky Collection (GINZA SIX B2)", "More whisky shopping while you're in the mood. Tasting area, English-speaking staff and good prices on Japanese bottles. Compare with Life Vacation's prices before buying. Ask about holding or delivering bottles, and keep them sealed for the tax refund.", "WHISKY", "Jule's Whisky Collection GINZA SIX"],
+  ["3:05 PM", "GINZA SIX", "A quick browse (about 15 min) while you're in the building. Ginza Tsutaya Books on 6F is a beautiful art and photo-book store (from your list). The ReFa shop on B1 is your ReFa stop: hair dryers, brushes and irons, tax-free with your passport. Skip the rooftop for now; you'll be back for sunset.", "ART", "GINZA SIX Ginza Tsutaya Books"],
+  ["3:20 PM", "Gekkoso", "ART. Handmade watercolors and paint from one of Tokyo's oldest art-supply makers, a few minutes from GINZA SIX. About 20 min.", "ART", "Gekkoso Ginza"],
+  ["3:45 PM", "Ginza Tsuboyaki-imo", "The roasted sweet potato spot. Opens at 1:30 PM on weekdays.", "SWEETS", "Ginza Tsuboyaki-imo"],
+  ["4:00 PM", "Whisky Store Liquor Museum", "More whisky. Last whisky stop: compare with Life Vacation and Jule's before buying. Bottles are heavy, so ask if they can hold them or deliver to OMO5. Keep them sealed and unused for the tax refund at Narita.", "WHISKY", "WHISKY STORE LIQUOR MUSEUM Premium Shop Ginza"],
+  ["4:30 PM", "GINZA SIX Rooftop Garden at sunset", "Free rooftop over the Ginza skyline. Sunset is 4:38. Take the elevator near Tsutaya Books on 6F.", "PHOTO", "Ginza Six Rooftop Garden"],
+  ["5:00 PM","Ginza Sushi Den","BOOKED for 5:00 PM. Omakase on the 11th floor of GIRAC GINZA (6-13-9). Ask for counter seats if you can (some tables are private booths). Go easy on the sake, since the sauna is next.","FOOD","Ginza Sushi Den",true],
+  ["7:00 PM","KUDOCHI sauna Ginza","BOOKED for 7–9 PM. 2-hr private sauna room with self-löyly and a cold plunge. Leave Sushi Den by 6:50. Ease in: start with a cool shower and drink water before the first round, since you just ate.","SAUNA","KUDOCHI sauna Ginza",true],
+  ["9:05 PM","Ginza 4-chome crossing at night","On the walk to Ginza Station: the 1932 Seiko clock tower lit up over Chuo-dori, with the Ginza signs glowing. Quick night shots.","PHOTO","Seiko House Ginza Clock Tower"],
+  ["9:20 PM","Back to OMO5 Otsuka","Early night after the sauna. Konbini snacks on the way if you want them.","TRAVEL","OMO5 Tokyo Otsuka"]]},
+ {id:"d11",dow:"WED",d:11,sun:"4:37",gold:"3:52",blue:"5:02",spot:"Golden hour falls while you\'re in the bars (3:52–4:37). Blue hour and the night skyline from New York Bar on the 52nd floor of the Park Hyatt, right at 5 PM opening.",bday:true,title:"Birthday",note:"Otsuka stroll → film drop → Kagurazaka → L\'alba lunch → Shinjuku bar crawl → New York Bar → Sushi Tsumugi → I\'m FREE",stops:[
+  ["8:30 AM", "Birthday-morning stroll around Otsuka", "Slow start in the hotel's neighborhood. Walk the Toden Arakawa (Sakura Tram) tracks by Otsuka-ekimae, where roses line the rails and the autumn blooms may still be out, and catch the streetcars in soft morning light. Wander the quiet backstreets and small shrines and grab coffee and breakfast on the way. OMO5's OMO Rangers run free neighborhood walks and have a hand-drawn map at the front desk; ask the day before. Head to Ikebukuro around 9:45.", "PHOTO", "Otsuka-ekimae tram stop"],
+  ["10:00 AM", "Quick film drop: Kitamura LABI Ikebukuro", "DEVELOP. A 5-minute stop one station from the hotel (opens at 10), on the way to Kagurazaka. Drop Monday's and Tuesday's rolls on 2F and ask for scans sent to your phone. You'll pick up the negatives Friday.", "FILM", "Kitamura Camera LABI Ikebukuro"],
+  ["10:30 AM", "Kagurazaka: Geisya Komichi + Honda Yokocho", "Stone-paved alleys of the old geisha quarter. Geisya Komichi is a quiet stone stairway lined with small restaurants, and Honda Yokocho is the main alley. Great for slow-shutter photos.", "PHOTO", "Geisya Komichi Alley Kagurazaka"],
+  ["12:00 PM", "L'alba (birthday lunch)", "BOOKED for 12:00. Hidden 9-seat counter Italian in Kagurazaka (DeLCCS KAGURAZAKA, B1F), about 4 min from Iidabashi Station. The omakase lunch course runs antipasti, zuppa, pasta, secondo, dolce and caffè, cooked in front of you. Reviewers love the seafood pastas. Arrive a few minutes early.", "FOOD", "L'alba Kagurazaka Tsukudocho 3-19", true],
+  ["1:45 PM", "Head to Shinjuku", "Birthday bar crawl starts. Pace yourself: small pours, water between stops, and keep room for dinner at 7.", "TRAVEL", null],
+  ["2:00 PM", "Liquor Mountain Shinjuku (whisky tasting)", "CRAWL 1. A big whisky shop with a paid tasting counter: about ¥200–400 a shot, so you can try rare Japanese bottles before buying. Tax-free with your passport. Keep any bottles sealed for the refund at Narita, or ask about holding them.", "BARS", "Liquor Mountain SHINJUKU TOKYO Kabukicho 1-1-17"],
+  ["2:45 PM", "Bar Liquor Museum (Shinjuku Subnade)", "CRAWL 2. A tiny bar in the underground Subnade mall, rated 4.9. The bartender, Mo, makes beautiful seasonal fruit cocktails with real showmanship. Ask for something built around a Japanese whisky or gin, and settle in for a couple of rounds. Leave by 4:40.", "BARS", "Liquor Museum Shinjuku Subnade"],
+  ["5:00 PM", "New York Bar, Park Hyatt Tokyo (52F)", "BOOKED for 5:00 PM. CRAWL 3, the birthday view. The Lost in Translation bar, newly restored, opens at 5 PM, right as blue hour hits (until about 5:02) and the city lights come on. No cover charge before 8 PM. Live jazz in the evening. Get a window seat and a birthday cocktail. Leave by 6:45 for dinner.", "BARS", "New York Bar Park Hyatt Tokyo", true],
+  ["7:00 PM", "Sushi Tsumugi Shinjuku (birthday dinner)", "BOOKED for 7:00. Omakase sushi in Nishi-Shinjuku (Kokusai-dori Bldg 3F, 1-16-4), about 20 courses. Reviewers single out the tuna, sweet prawn and uni. English drinks menu. Ask for counter seats when you arrive. Tax plus a small service charge are added.", "FOOD", "Sushi Tsumugi Shinjuku Nishishinjuku 1-16-4", true],
+  ["9:30 PM", "I'm FREE Ikebukuro East", "Quick stop for CBD edibles (about 15 min), then 1 stop home. Japan is very strict about THC, so buy only what the shop sells, and finish them in Japan: don't pack them for Narita or US customs.", "SHOP", "I'm FREE Ikebukuro East Store Higashiikebukuro 1-13-12"]]},
+ {id:"d12",dow:"THU",d:12,sun:"4:37",gold:"3:52",blue:"5:02",spot:"Golden hour falls while you\'re in Asakusa (3:52–4:37). Blue hour on the way to Akihabara, then the full neon after drinks, followed by night shots in Golden Gai and Omoide Yokocho.",title:"Hotel morning, class, night photo walk",note:"Otsuka morning + class at the hotel (11–1) → Ueno highball lunch → Aoyama Daruma → Pelican → I'm FREE Asakusa → Akihabara drinks + photo walk → Shinjuku. Bring a spare battery.",stops:[
+  ["9:30 AM","Slow morning around Otsuka","Sleep in after the birthday. Breakfast near the hotel and a wander around the neighborhood, staying close by until after class. Be back in your room by 10:45 to connect and test audio.","FREE",null],
+  ["11:00 AM–1:00 PM", "DVAP class", "6–8 PM Pacific on Wed 11/11. Your Pacific-time block falls here: 6–8 PM PT on Wednesday is 11 AM–1 PM in Tokyo on Thursday (Tokyo is 17 hours ahead). Take it from your OMO5 room, where you can talk and have your camera on without worrying about noise.", "CLASS", "OMO5 Tokyo Otsuka"],
+  ["1:30 PM", "HIGHBALL BAR UENO station 1923 (lunch)", "Lunch and highballs inside Ueno Station (atre Ueno EAST 2F, Retro-kan), with window counter seats and phone chargers. The katsu curry is the lunch favorite (big portion, spicy for Japan). Try the drip-coffee or earl grey highballs, or the highball of the day with cheap refills. Until 5 PM there's a ¥1,000 drink-plus-snack set. Order by QR code; small table charge.", "FOOD", "HIGHBALL BAR UENO station 1923"],
+  ["3:00 PM", "AOYAMA DARUMA", "Small indigo and craft shop near Asakusa (Kotobuki 4-16-5, 1F). Design your own daruma bracelet: pick the beads and a brass, copper or silver daruma charm. Also hanten jackets and vintage indigo pieces. English-speaking owner. Open 12–6 PM Wed–Sat.", "SHOP", "AOYAMA DARUMA Kotobuki 4-16-5"],
+  ["3:30 PM", "Pelican (bakery)", "Asakusa's famous bakery since 1942, a 1-minute walk from AOYAMA DARUMA. It only makes a few simple breads: the shokupan (white loaf) and the soft rolls are the ones to get. Afternoon stock often sells out, so call ahead to reserve (+81 3-3841-4686, or ask OMO5 to call). Open until 5 PM, closed Sundays. Grab and go; the Pelican Café nearby has long lines.", "BAKERY", "Pelican bakery Kotobuki 4-7-4"],
+  ["3:50 PM", "I'm FREE Asakusa", "Quick CBD stop (about 15 min) at the Asakusa branch (Asakusa 2-11-1, M Bldg 1F), about 10 min on foot from Pelican. Open 11 AM–11 PM. Same rules: buy only what the shop sells and finish everything in Japan.", "SHOP", "I'm FREE Asakusa 2-11-1"],
+  ["4:30 PM", "Kushigin (Akihabara standing bar)", "Drinks in Akihabara: a busy, cheap standing yakitori bar full of locals, just south of the station. Get the ginger highball and the house kushigin skewer, plus crispy chicken skin or fried mackerel. Order at least 1 drink and 1 food. Cash only, and smoking is allowed inside. Head out for the photo walk around 5:15.", "BARS", "Kushigin Kanda Sakumacho 1-8-4"],
+  ["5:15 PM", "Akihabara Electric Town: neon city shot", "PHOTO WALK starts just after blue hour, with the signs fully lit. The wall-to-wall neon shot: stacked anime billboards, arcade signs and glowing towers lining Chuo-dori. Shoot down the avenue with a longer lens to compress the signs into a neon canyon, then slow the shutter for light trails from passing cars. The side streets around Sotokanda give tighter, grittier frames. Leave around 6:00 for Shinjuku.", "PHOTO", "Akihabara Electric Town Chuo-dori"],
+  ["6:30 PM","Golden Gai lanes","Shoot the quiet alleys while the bars are opening, before they fill. Skip shots inside bars, many post no-photo signs. Once lights come on (most open 7–8 PM), duck into one for a drink; check the cover charge first. Head to Omoide Yokocho around 8:00.","PHOTO","Shinjuku Golden Gai"],
+  ["8:15 PM","Omoide Yokocho","Lantern and grill-smoke shots, then sit down for yakitori dinner. Ask before photographing people eating.","FOOD","Omoide Yokocho Shinjuku"],
+  ["9:45 PM","Back to OMO5 Otsuka","JR Yamanote from Shinjuku to Otsuka, about 13 min.","TRAVEL","OMO5 Tokyo Otsuka"]]},
+ {id:"d13",dow:"FRI",d:13,sun:"4:36",gold:"3:51",blue:"5:01",spot:"Free day. If you\'re around Otsuka in the late afternoon, the Sakura Tram streetcars at Otsuka-ekimae catch golden light (about 3:51–4:36), right by the hotel.",title:"Open day, fly home",note:"Check out, free day, car to Narita at 5 PM",stops:[
+  ["Morning", "Check out of OMO5", "Leave your bags at the front desk if you head out. The rest of the day is open.", "TRAVEL", "OMO5 Tokyo Otsuka"],
+  ["5:00 PM", "Car pickup at OMO5 to Narita", "Car from the hotel to Narita Terminal 1, about 60–90 min depending on traffic. Do the tax-free kiosk before check-in. ZG026 departs 9:25 PM.", "TRAVEL", "Narita Airport Terminal 1"]]}
+];
+
+const CAT={FOOD:"food",DINNER:"food",OMAKASE:"food",SNACK:"sweet",SWEETS:"sweet",TEA:"sweet",MATCHA:"sweet",BAKERY:"sweet",BARS:"bars",WHISKY:"bars",PHOTO:"photo",FILM:"photo",DEVELOP:"photo",SHOP:"shop",CLOTHES:"shop",CAMERA:"shop",ART:"art",BIRTHDAY:"special",SAUNA:"special",CLASS:"special",BLOCK:"special",KIMONO:"special",TRAVEL:"travel",FREE:"travel"};
+const BOOK_NOW=[
+ ["sushi","Sushi Tokyo Ten Shibuya","Mon 11/9 · 6:30 PM","Booked.",null],
+["sushiden","Ginza Sushi Den","Tue 11/10 · 5:00 PM","Booked.",null],
+ ["transfer","Narita → OMO5 private transfer","Sun 11/8 · after landing (~8:45 PM)","Booked. Flight tracking on; driver waits 45 min. Confirm the flight number reads ZG025.",null],
+ ["pulipo","Katsu Pulipo (lunch)","Mon 11/9 · 12:00 PM","Booked.",null],
+ ["tsumugi","Sushi Tsumugi Shinjuku (birthday dinner)","Wed 11/11 · 7:00 PM","Booked.",null],
+ ["nybar","New York Bar, Park Hyatt","Wed 11/11 · 5:00 PM","Booked.",null],
+ ["lalba","L'alba (birthday lunch)","Wed 11/11 · 12:00 PM","Booked.",null],
+ ["azuki","Azuki to Kōri (kakigori)","Book Mon 11/2 · 9:00 PM JST (4:00 AM PST)","Bookings open 7 days ahead at 9 PM Japan time, for your Mon 11/9 · 2:00 PM visit. Set an alarm and book on their website the moment slots open. Card only.",null],
+ ["kudochi","KUDOCHI sauna Ginza","Tue 11/10 · 7:00–9:00 PM","Booked.",null],
+];
+const BOOK_WINDOW=[];
+const BOOK_OPT=[
+ ["pelican","Pelican bakery (reserve bread)","Thu 11/12 · 3:30 PM","Call a few days ahead to reserve a shokupan loaf and rolls for pickup (+81 3-3841-4686), or ask the OMO5 front desk to call. Afternoon stock often sells out.",null],
+ ["omo5bags","OMO5 Otsuka bag hold + car","Fri 11/13 · 5:00 PM","Confirm the 5 PM car pickup to Narita, and that they'll hold bags after checkout.",null]
+];
+const PREP=[
+ ["passport","Passport valid through the trip","Now","US citizens don't need a visa for up to 90 days.",null],
+ ["vjw","Visit Japan Web","1–2 weeks out","Optional, but it gives you QR codes for faster immigration and customs. Screenshot them. Ignore JESTA, which doesn't start until 2028 or later.","https://www.vjw.digital.go.jp/"],
+ ["meds","Check your medications","Before packing","Some common US medicines, including pseudoephedrine (Sudafed), aren't allowed in Japan.",null],
+ ["zipbag","ZIPAIR checked bag + meals","Before you fly","Bags and food aren't included in the fare. The carry-on limit is tight, so add a bag for the way home.",null],
+ ["suica","Suica in Apple Wallet","Before you fly","Add it and load it.",null],
+ ["esim","Japan data eSIM","Before you fly","Install it at home, then switch it on when you land.",null],
+ ["sleeves","Bottle sleeves / bubble wrap","Packing","For whisky in your checked bag.",null]
+];
+
+const LINKS={"d12|11:00 AM–1:00 PM":["Join DVAP class on Zoom","https://us02web.zoom.us/j/82514106954?pwd=Tk1PVUZwb3N3OXJ0eHQ0T2oyOUVzUT09"]};
+const GO={"d9|10:00 AM": "JR Yamanote Line from Otsuka toward Ikebukuro/Shinjuku, 5 stops (about 12 min) to Shinjuku. Stay inside and follow signs to Odakyu Line / West Exit. Ikedaya is in the Odakyu Ace South underground mall. Ask station staff if you're lost.", "d9|6:30 PM": "Walk south down Cat Street into Shibuya (about 20 min), or take the Ginza Line 1 stop from Omotesando. Head past Shibuya Station to Shibuya Stream (3-21-3 Shibuya). Sushi Tokyo Ten is on 3F.", "d12|8:15 PM": "About 12 min on foot. Cross under the tracks to the West Exit side. Omoide Yokocho runs along the tracks just north of the exit.", "d9|10:20 AM": "Exit at Shinjuku West Exit, street level. Yodobashi's camera store is about 3 min west of the station.", "d9|11:05 AM": "About 5 min on foot from Yodobashi, still on the West Exit side (Nishi-Shinjuku 1-13-6, 2nd floor).", "d9|12:00 PM": "Leave five star camera by 11:40. Walk back through the station's east-west passage to the East Exit, then about 8 min north toward Kabukicho (1-10-3 Kabukicho). About 15 min total.", "d9|12:55 PM": "About 5 min south on foot from Katsu Pulipo to Kitamura (Shinjuku 3-26-14).", "d9|1:10 PM": "On foot from Kitamura. BEAMS JAPAN is a couple of minutes away, and Isetan is about 7 min east along Shinjuku-dori.", "d9|2:00 PM": "About 12 min on foot south from Isetan to Yoyogi 1-46-2, near JR Yoyogi Station. Or JR Yamanote 1 stop from Shinjuku to Yoyogi, then 3 min.", "d9|2:55 PM": "JR Yamanote Line from Yoyogi toward Shibuya, 1 stop to Harajuku. Take the Omotesando Exit and walk about 5 min down Omotesando avenue to the Cat Street entrance.", "d9|4:15 PM": "A few minutes on foot from Cat Street, toward Omotesando (Jingumae 3-23-6). Nearest station: Meiji-jingumae or Omotesando.", "d10|8:30 AM": "Leave by 7:50. JR Yamanote Line 1 stop to Ikebukuro, then Tokyo Metro Marunouchi Line to Ginza (about 18 min). Transfer to the Hibiya Line toward Kita-Senju, 2 stops to Tsukiji. Take Exit 1; the market is a few minutes' walk. About 40 min total.", "d10|11:00 AM": "About 15 min on foot from Tsukiji up Harumi-dori to Ginza 5-5-1, by the Ginza 4-chome crossing. Or the Hibiya Line 2 stops to Ginza and follow signs for the 4-chome crossing.", "d10|12:30 PM": "About 2 min on foot to Mitsukoshi Ginza, across the 4-chome crossing.", "d10|5:00 PM": "About 5 min on foot east from GINZA SIX to Ginza 6-13-9 (GIRAC GINZA). Take the elevator to 11F. Leave the rooftop by 4:50.", "d10|7:00 PM": "Leave Sushi Den by 6:50. About 7 min on foot south-west to Ginza 8-8-5 (basement).", "d10|9:05 PM": "About 8 min on foot north up Chuo-dori to the Ginza 4-chome crossing.", "d10|9:20 PM": "Ginza Station is right under the crossing. Marunouchi Line toward Ikebukuro (about 18 min), then JR Yamanote 1 stop to Otsuka and the North Exit. About 30 min total, or a taxi (about 25 min).", "d10|1:10 PM": "About 5 min on foot north up Chuo-dori from Mitsukoshi to Ginza 2-7-15.", "d10|1:45 PM": "About 1 min on foot from Itoya to Ginza 2-4-6 (Velvia-kan building, 1F–5F).", "d10|2:10 PM": "About 3 min on foot from Loft to Ginza 3-chome.", "d10|2:30 PM": "About 8 min on foot from MUJI, south down Chuo-dori and left onto the side street to Ginza 5-9-5 (1F).", "d10|2:50 PM": "About 5 min on foot from Life Vacation, across Chuo-dori to GINZA SIX (Ginza 6-10-1). Take the escalators down to B2.", "d10|3:05 PM": "You're already inside GINZA SIX. Take the escalators up from B2 (ReFa is on B1, Tsutaya Books on 6F).", "d10|4:30 PM": "About 5 min on foot south down Chuo-dori from Liquor Museum back to GINZA SIX. Take the elevator near Tsutaya Books on 6F up to the rooftop.", "d9|8:40 PM": "From Shibuya, Tokyo Metro Fukutoshin Line toward Ikebukuro, direct (about 13 min). Follow signs for the East Exit and walk about 5 min to Higashi-Ikebukuro 1-13-12 (1F). Home: JR Yamanote 1 stop to Otsuka (about 15 min total), or a short taxi.", "d11|8:30 AM": "Right outside the hotel. Use JR Otsuka's South Exit side for the tram stop, a few minutes on foot from OMO5.", "d11|10:30 AM": "From LABI, walk back to Ikebukuro Station. Tokyo Metro Yurakucho Line toward Shin-Kiba, 5 stops (about 10 min) to Iidabashi. Follow signs for Kagurazaka; Geisya Komichi is at Kagurazaka 3-chome, just off the main slope.", "d10|3:20 PM": "About 3 min on foot from GINZA SIX to Gekkoso in Ginza 8-chome.", "d10|3:45 PM": "About 3 min on foot from Gekkoso to Ginza 7-6-4.", "d10|4:00 PM": "About 6 min on foot north to Ginza 6-3-12.", "d11|10:00 AM": "JR Yamanote Line from Otsuka, 1 stop to Ikebukuro. Take the East Exit; LABI is a couple of minutes away.", "d11|12:00 PM": "A few minutes on foot from Kagurazaka's main slope to Tsukudocho 3-19 (DeLCCS KAGURAZAKA, B1F), about 4 min from Iidabashi Station. Leave the alleys by 11:50.", "d11|1:45 PM": "From Kagurazaka, walk to Iidabashi Station, then JR Chuo-Sobu Line toward Mitaka direct to Shinjuku (about 13 min). Or a taxi, about 15 min.", "d11|2:00 PM": "From JR Shinjuku, take the East Exit and walk about 7 min north-east to Kabukicho 1-1-17 (Equinia Shinjuku 1F), near Golden Gai.", "d11|2:45 PM": "About 3 min on foot to the Yasukuni-dori / Azuma-dori crossing. Go down into Shinjuku Subnade at Gate 11; the bar is right inside.", "d11|5:00 PM": "Taxi from Shinjuku Subnade to the Park Hyatt, about 10 min (easiest after drinks). Or walk about 20 min west past the station and the skyscrapers. Take the elevator to the 41F lobby, then the bar elevator to 52F.", "d11|7:00 PM": "Taxi from the Park Hyatt to Nishi-Shinjuku 1-16-4, about 7 min. Or walk about 15 min east toward the station. Leave by 6:45.", "d11|9:30 PM": "From Shinjuku, JR Yamanote Line toward Ikebukuro, 4 stops (about 9 min). Take the East Exit; the shop is about 5 min on foot at Higashi-Ikebukuro 1-13-12 (1F). Home: JR 1 stop to Otsuka, or a short taxi.", "d12|9:45 PM": "Walk back to JR Shinjuku (West Exit, a couple of minutes from Omoide Yokocho). JR Yamanote Line toward Ikebukuro, 6 stops to Otsuka (about 13 min). North Exit for the hotel.", "d12|1:30 PM": "Leave OMO5 at 1:00. JR Yamanote Line from Otsuka toward Tabata/Ueno, 7 stops to Ueno (about 15 min). The bar is inside atre Ueno EAST, 2F (Retro-kan), connected to the station.", "d12|3:00 PM": "From Ueno, Tokyo Metro Ginza Line toward Asakusa, 2 stops to Tawaramachi (about 4 min), then about 5 min on foot to Kotobuki 4-16-5. Or a taxi, about 8 min.", "d12|3:30 PM": "About 1 min on foot from AOYAMA DARUMA to Kotobuki 4-7-4.", "d12|3:50 PM": "About 10 min on foot north from Pelican toward Sensō-ji (Asakusa 2-11-1), or a 5-min taxi.", "d12|4:30 PM": "Leave I'm FREE by 4:10. Walk to Asakusa Station on the Tsukuba Express (under Kokusai-dori, a few minutes away) and ride 3 stops to Akihabara (about 5 min). Kushigin is about 5 min on foot south of the station, across the Kanda River at Kanda Sakumacho 1-8-4.", "d12|5:15 PM": "About 5 min on foot back north past Akihabara Station to Chuo-dori in Electric Town.", "d12|6:30 PM": "JR Chuo-Sobu Line from Akihabara to Ochanomizu (1 stop), then cross the platform to the JR Chuo Line Rapid to Shinjuku (about 17 min total). Take the East Exit and walk about 10 min north-east past Yasukuni-dori to Golden Gai, by Hanazono Shrine.", "d13|5:00 PM": "Car from the OMO5 entrance to Narita Airport Terminal 1, about 60–90 min.", "d8|8:45 PM": "After immigration, customs and bags, head to the meeting point listed under Pick-up details in your booking app. The driver tracks your flight and waits 45 min.", "d8|10:00 PM": "The car drops you at OMO5's entrance (Minami-Otsuka 3-33-1), about 1 hr 15 min from Narita."};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mapUrl=q=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+
+const dirUrl=(dest,origin,mode)=>"https://www.google.com/maps/dir/?api=1"+(origin?"&origin="+encodeURIComponent(origin):"")+"&destination="+encodeURIComponent(dest)+"&travelmode="+(mode||"transit");
+function prevQ(day,i){for(let j=i-1;j>=0;j--){if(day.stops[j][4])return day.stops[j][4]}const k=DAYS.indexOf(day);return k>0?"OMO5 Tokyo Otsuka":null}
+function renderDay(id){
+  const day=DAYS.find(x=>x.id===id)||DAYS[1];
+  document.querySelectorAll(".day").forEach(b=>b.setAttribute("aria-selected",b.dataset.id===day.id));
+  document.getElementById("dayview").innerHTML=`
+   <div class="dayhead"><h2>${day.bday?"🎂 ":""}${esc(day.title)}</h2><p>${esc(day.note)}</p></div>
+   <div class="light"><div class="lt"><span><i>Golden</i>~${day.gold}–${day.sun}</span><span><i>Sunset</i>${day.sun} PM</span><span><i>Blue</i>${day.sun}–~${day.blue}</span></div><p>${esc(day.spot)}</p></div>
+   <ol class="stops">${day.stops.map(([t,n,b,tag,q,bk],i)=>{const prev=prevQ(day,i);const g=GO[day.id+"|"+t]||"";const walk=/^(About \d+(–\d+)? min on foot|On foot|A few minutes on foot|About \d+ min back on foot)/.test(g);const mode=walk?"walking":"transit";return `
+    <li class="cat-${CAT[tag]||"none"}"><div class="t">${esc(t)}</div><div class="s">
+     <div class="n">${esc(n)}${tag?`<span class="tag cat-${CAT[tag]||"none"}">${tag}</span>`:""}${bk?`<span class="bk">· reserved</span>`:""}</div>
+     <div class="b">${esc(b)}</div>
+     ${LINKS[day.id+"|"+t]?`<a class="navbtn joinbtn" href="${LINKS[day.id+"|"+t][1]}" target="_blank" rel="noopener">${esc(LINKS[day.id+"|"+t][0])}</a><span class="linktxt">${esc(LINKS[day.id+"|"+t][1])}</span>`:""}
+     ${GO[day.id+"|"+t]?`<div class="go"><span>Getting there</span>${esc(GO[day.id+"|"+t])}</div>`:""}
+     ${q?`<div class="nav">
+       <a class="navbtn" href="${dirUrl(q,null,mode)}" target="_blank" rel="noopener">Navigate</a>
+       ${prev?`<a class="navlink" href="${dirUrl(q,prev,mode)}" target="_blank" rel="noopener">From last stop</a>`:""}
+       <a class="navlink" href="${mapUrl(q)}" target="_blank" rel="noopener">Map</a>
+     </div>`:""}
+    </div></li>`}).join("")}</ol>`;
+  store.set("tt-day",day.id);
+}
+function buildPicker(){
+  document.getElementById("daypicker").innerHTML=DAYS.map(d=>`<button class="day${d.bday?" bday":""}" role="tab" data-id="${d.id}" id="pick-${d.id}"><span class="dow">${d.dow}</span><span class="dn">${d.d}</span><span class="mo">NOV</span></button>`).join("");
+  document.querySelectorAll(".day").forEach(b=>b.addEventListener("click",()=>renderDay(b.dataset.id)));
+}
+function checklist(elId,items,progId){
+  const el=document.getElementById(elId);const state=store.get("tt-check",{});
+  el.innerHTML=items.map(([k,t,w,d,u])=>`<li class="${state[k]?"done":""}"><label><input type="checkbox" id="c-${k}" data-k="${k}" ${state[k]?"checked":""}><div class="ci"><span class="ct">${esc(t)}</span><span class="cw">${esc(w)}</span><span class="cd">${esc(d)}${u?` <a href="${u}" target="_blank" rel="noopener">Open ↗</a>`:""}</span></div></label></li>`).join("");
+  const upd=()=>{if(progId){const n=items.filter(i=>store.get("tt-check",{})[i[0]]).length;document.getElementById(progId).textContent=`${n} of ${items.length} booked`}};
+  el.querySelectorAll("input").forEach(i=>i.addEventListener("change",()=>{const s=store.get("tt-check",{});s[i.dataset.k]=i.checked;store.set("tt-check",s);i.closest("li").classList.toggle("done",i.checked);upd()}));
+  upd();
+}
+function showTab(t){
+  ["days","book","light","prep","shop"].forEach(x=>{document.getElementById("panel-"+x).hidden=x!==t;document.getElementById("tab-"+x).setAttribute("aria-selected",x===t)});
+  store.set("tt-tab",t);
+}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+
+buildPicker();
+const SHOTS=[
+ ["Omotesando avenue","Mon · golden ~4:00","Stand in the median crosswalk and shoot down the avenue toward the light. The zelkova trees frame the road, and the low sun flares through the leaves. A 50mm compresses the rows of trees.","Omotesando zelkova sunset","omotesando",null],
+ ["GINZA SIX rooftop", "Tue · sunset 4:38", "Shoot across the Ginza rooftops as the sun drops, then stay for the first city lights. Rail edges make a steady rest for slower shutters.", "Ginza Six rooftop garden sunset", "ginzasix", null],
+ ["Ginza 4-chome crossing", "Tue · night 9:05", "Frame the curved, lit Seiko clock tower from the opposite corner by Mitsukoshi lit up at night. Crowds crossing at 1/8s give motion.", "Ginza Wako clock tower night", "ginza", null],
+ ["Kagurazaka alleys","Wed · 10:30","Stone-paved Geisya Komichi and Honda Yokocho: shoot down the steps with the lanterns and wooden storefronts, and wait for a single passer-by for scale. Soft morning light suits Portra 400.","Kagurazaka Geisya Komichi alley","kagurazaka",null],
+ ["New York Bar, Park Hyatt 52F","Wed · 5:00, blue hour","A cocktail glass against the window as blue hour fades and Shinjuku's towers light up. Press your lens hood to the glass to kill reflections.","New York Bar Park Hyatt Tokyo view","newyorkbar",null],
+ ["Sensō-ji pagoda","Thu · golden ~4:10 (optional)","The five-story pagoda glowing in the last low sun before 4:37, shot from beside the main hall. A short walk from I'm FREE Asakusa.","Sensoji pagoda golden hour","sensoji",null],
+ ["Akihabara neon", "Thu · 5:15", "Stand on a Chuo-dori sidewalk and shoot down the avenue at 85mm or longer so the stacked billboards pile into one wall of light. For a second frame, slow to 1/4s braced on a railing to turn traffic into light trails.", "Akihabara neon night street", "akihabara", ["Nightscape Tokyo", "https://nightscape.tokyo/en/"]],
+ ["Golden Gai","Thu · 6:30","Shoot down a narrow lane between the tiny bar signs, with one figure walking away. Vertical frames suit the alleys.","Golden Gai alley night film","goldengai",["Shinjuku photo spots guide","https://www.magical-trip.com/media/top-photo-spots-guide-in-tokyo-shinjuku-maps-of-best-instagrammable-streets/"]],
+ ["Omoide Yokocho","Thu · 8:15","Red lanterns with grill smoke drifting through them, backlit by the alley lights. Shoot from the end of the lane for depth.","Omoide Yokocho lanterns smoke","omoideyokocho",["Shinjuku photo spots guide","https://www.magical-trip.com/media/top-photo-spots-guide-in-tokyo-shinjuku-maps-of-best-instagrammable-streets/"]],
+ ["Sakura Tram, Otsuka","Wed morning stroll, or Fri ~3:50 if you're around","Catch a single retro streetcar rounding the bend at Otsuka-ekimae in low sun. Pan with it at 1/60 to blur the background.","Toden Arakawa line Otsuka tram","todenarakawaline",["Sakura Tram line guide","https://metropolisjapan.com/the-tokyo-sakura-tram-line/"]]
+];
+document.getElementById("shotlist").innerHTML=SHOTS.map(([n,w,d,q,tag,g])=>`<article class="shot"><div class="sh"><b>${esc(n)}</b><span class="sw">${esc(w)}</span></div><p>${esc(d)}</p><div class="sl">${g?`<a href="${g[1]}" target="_blank" rel="noopener">${esc(g[0])} ↗</a>`:""}<a href="https://www.instagram.com/explore/tags/${tag}/" target="_blank" rel="noopener">Instagram #${tag} ↗</a><a href="https://www.pinterest.com/search/pins/?q=${encodeURIComponent(q)}" target="_blank" rel="noopener">Pinterest ↗</a><a href="${mapUrl(n+" Tokyo")}" target="_blank" rel="noopener">Maps ↗</a></div></article>`).join("");
+
+document.getElementById("lightrows").innerHTML=DAYS.map(d=>`<tr><td><b>${d.dow} 11/${d.d}</b>${d.bday?" 🎂":""}</td><td class="num"><span class="hr h-sun">${d.sun} PM</span></td><td><span class="num hr h-gold">~${d.gold}–${d.sun}</span><br><span class="sp">${esc(d.spot)}</span></td><td class="num"><span class="hr h-blue">${d.sun}–~${d.blue}</span></td></tr>`).join("");
+document.querySelectorAll(".lighttbl").forEach(t=>{const h=[...t.querySelectorAll("thead th")].map(x=>x.textContent);t.querySelectorAll("tbody tr:not(.grp)").forEach(r=>[...r.children].forEach((c,i)=>c.setAttribute("data-label",h[i]||"")))});
+
+const SHOP_SEED=[
+ ["Mon 11/9 · Shinjuku, Harajuku, Shibuya",[
+  ["s-matcha","Marukyu Koyamaen matcha","Ikedaya Tea Store, 10:00 (backup: Mitsukoshi Ginza on Tue)"],
+  ["s-portra","Portra 400 film ×4","Yodobashi Camera Shinjuku, 10:20"],
+  ["s-cine","CineStill 800T film ×4–6","Yodobashi (backup: Kitamura, 12:55)"],
+  ["s-lens","LEICA DG SUMMILUX 25mm F1.4 (Mark I H-X025 / Mark II H-XA025)","Yodobashi new/used, or five star camera used"],
+  ["s-yaman","YA-MAN Photo PLUS Shiny face device","Yodobashi beauty floor (backup: Isetan, Bic Camera Ikebukuro)"],
+  ["s-fino","Fino hair mask refills","Don Quijote Kabukicho, a few minutes from Katsu Pulipo after lunch"],
+  ["s-donki","Sweet potato spread","Don Quijote Kabukicho, same stop"],
+  ["s-clothes","Clothes","BEAMS JAPAN + Isetan, 1:10; Cat Street, 2:55"],
+  ["s-mofu","mofusand goodies","mofusand TOKYO, 4:15"],
+  ["s-cbd1","CBD edibles","I'm FREE Ikebukuro East, 8:40 PM"]]],
+ ["Tue 11/10 · Tsukiji + Ginza",[
+  ["s-fruit","Fruit / parfait (eat in Japan)","Ginza Sembikiya, 11:00"],
+  ["s-itoya","Paper, pens and art supplies","Itoya, 1:10"],
+  ["s-loft","Stationery, gadgets, souvenirs","Ginza Loft, 1:45"],
+  ["s-muji","MUJI basics (optional)","MUJI Ginza, 2:10"],
+  ["s-mujipj","MUJI pajamas","MUJI Ginza, 2:10"],
+  ["s-whisky","Japanese whisky bottles (keep sealed)","Life Vacation 2:30, Jule's 2:50, Liquor Museum 4:00"],
+  ["s-refa","ReFa hair dryer / brush","ReFa shop, GINZA SIX B1, 3:05"],
+  ["s-books","Art / photo books","Tsutaya Books, GINZA SIX 6F"],
+  ["s-gekkoso","Handmade watercolors","Gekkoso, 3:20"]]],
+ ["Wed 11/11 · Birthday",[
+  ["s-kaldi1","Sweet potato jam","Kaldi Coffee Farm in Ikebukuro, right after the 10:00 film drop"],
+  ["s-kaldi2","Melon pan spread","Kaldi Coffee Farm, same stop"],
+  ["s-uniqlo","Uniqlo socks + seamless underwear","Uniqlo Ikebukuro, near LABI (quick stop before Kagurazaka)"],
+  ["s-ukon","Ukon no Chikara (hangover drink)","Any konbini before the 2:00 bar crawl"],
+  ["s-tasting","Whisky from the tasting counter (optional)","Liquor Mountain Shinjuku, 2:00"],
+  ["s-cbd2","CBD edibles","I'm FREE Ikebukuro East, 9:30 PM"]]],
+ ["Thu 11/12 · Ueno + Asakusa",[
+  ["s-daruma","Custom daruma bracelet","AOYAMA DARUMA, 3:00"],
+  ["s-pelican","Pelican shokupan + rolls (reserve ahead)","Pelican, 3:30"],
+  ["s-cbd3","CBD (finish in Japan)","I'm FREE Asakusa, 3:50"]]],
+ ["Fri 11/13 · Narita, before your flight",[
+  ["s-milkcheese","Tokyo Milk Cheese Factory cookies","Narita Terminal 1 shops"],
+  ["s-banana","Tokyo Banana","Narita Terminal 1 shops"]]]
+];
+const SHOP_AREAS=[
+ [0,"Mon 11/9",["Shinjuku (Yodobashi, five star, Kitamura)","Shinjuku Kabukicho (Don Quijote)","Shinjuku (BEAMS, Isetan)","Harajuku / Cat Street","Omotesando (mofusand)","Shibuya","Ikebukuro (evening)"]],
+ [1,"Tue 11/10",["Tsukiji Outer Market","Ginza (Sembikiya, Mitsukoshi)","Ginza (Itoya, Loft, MUJI)","Ginza (whisky shops)","GINZA SIX","Ginza (Gekkoso, Tsuboyaki-imo)"]],
+ [2,"Wed 11/11",["Otsuka (morning stroll)","Ikebukuro (after film drop)","Kagurazaka","Shinjuku (bar crawl)","Ikebukuro (evening)"]],
+ [3,"Thu 11/12",["Otsuka (morning)","Ueno Station","Asakusa (Daruma, Pelican, I'm FREE)","Akihabara","Shinjuku (Golden Gai, Omoide Yokocho)"]],
+ [4,"Fri 11/13",["Otsuka (free day)","Narita Terminal 1"]]
+];
+(function(){const sel=document.getElementById("shop-where");sel.innerHTML='<option value="">Where / when (optional)</option>'+SHOP_AREAS.map(([i,d,areas])=>`<optgroup label="${esc(d)}">${areas.map(a=>`<option value="${i}|${esc(d)} · ${esc(a)}">${esc(a)}</option>`).join("")}</optgroup>`).join("")+'<optgroup label="Other"><option value="|Anywhere (konbini / drugstore)">Anywhere (konbini / drugstore)</option></optgroup>';})();
+let SHOP_ST=store.get("tt-shop",{done:{},added:[],removed:[]});
+function saveShop(){store.set("tt-shop",SHOP_ST)}
+function renderShop(){
+  const st=SHOP_ST;
+  st.done=st.done||{};st.added=st.added||[];st.removed=st.removed||[];
+  const groups=SHOP_SEED.map(([g,items],gi)=>[g,items.filter(x=>!st.removed.includes(x[0])).concat(st.added.filter(a=>a.day===gi).map(a=>[a.id,a.t,a.w||""]))]).filter(([g,i])=>i.length);
+  const loose=st.added.filter(a=>a.day===undefined||a.day===null||a.day==="");
+  if(loose.length)groups.push(["Added by you",loose.map(a=>[a.id,a.t,a.w||""])]);
+  let total=0,done=0;
+  document.getElementById("shoplists").innerHTML=groups.map(([g,items])=>`<div class="shopgrp">${esc(g)}</div><ul class="check shop">${items.map(([k,t,w])=>{total++;if(st.done[k])done++;return `<li class="${st.done[k]?"done":""}"><label><input type="checkbox" data-k="${k}" ${st.done[k]?"checked":""}><div class="ci"><span class="ct">${esc(t)}</span>${w?`<span class="cw">${esc(w)}</span>`:""}</div></label><button class="del" type="button" data-del="${k}" aria-label="Remove ${esc(t)}">×</button></li>`}).join("")}</ul>`).join("");
+  document.getElementById("prog-shop").innerHTML=`${done} of ${total} bought${st.removed.length?` · <button type="button" id="shop-restore" class="linkbtn">Restore ${st.removed.length} removed</button>`:""}`;
+  const rb=document.getElementById("shop-restore");if(rb)rb.addEventListener("click",()=>{st.removed=[];saveShop();renderShop()});
+  document.querySelectorAll("#shoplists input").forEach(i=>i.addEventListener("change",()=>{st.done[i.dataset.k]=i.checked;saveShop();renderShop()}));
+  document.querySelectorAll("#shoplists .del").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.del;st.added=st.added.filter(a=>a.id!==k);if(k.startsWith("s-")&&!st.removed.includes(k))st.removed.push(k);delete st.done[k];saveShop();renderShop()}));
+}
+document.getElementById("shopform").addEventListener("submit",e=>{e.preventDefault();const t=document.getElementById("shop-item").value.trim();if(!t)return;const wv=document.getElementById("shop-where").value;const bar=wv.indexOf("|");const dayS=bar>=0?wv.slice(0,bar):"";const w=bar>=0?wv.slice(bar+1):"";const day=dayS===""?null:+dayS;SHOP_ST.added=SHOP_ST.added||[];SHOP_ST.added.push({id:"u-"+Date.now(),t,w,day});saveShop();document.getElementById("shop-item").value="";document.getElementById("shop-where").selectedIndex=0;renderShop();document.getElementById("shop-item").focus()});
+renderShop();
+checklist("list-now",BOOK_NOW,"prog-now");checklist("list-opt",BOOK_OPT);checklist("list-prep",PREP);
+// Default day: today's date during the trip, else last viewed, else Monday.
+(function(){
+  const now=new Date();let def=null;
+  if(now.getFullYear()===2026&&now.getMonth()===10){const m=DAYS.find(d=>d.d===now.getDate());if(m)def=m.id}
+  renderDay(def||store.get("tt-day","d9"));
+  const hash=(location.hash||"").slice(1);
+  showTab(["days","book","light","prep","shop"].includes(hash)?hash:store.get("tt-tab","days"));
+})();
+</script>
+
+</body>
+</html>

@@ -161,6 +161,11 @@ ol.stops li.cat-shop{border-left-color:var(--c-shop)} ol.stops li.cat-art{border
 .nav .navlink{border:1.5px solid var(--indigo);color:var(--indigo);background:var(--surface)}
 @media (max-width:380px){.nav .navbtn,.nav .navlink{font-size:13px;padding:8px 4px}}
  
+/* VJW QR */
+.qrcard{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.qrcard img{width:100%;max-width:300px;height:auto;aspect-ratio:1;image-rendering:pixelated;background:#fff;padding:8px;border-radius:6px}
+.qrcard div{flex:1 1 200px;min-width:0;font-size:15px}
+.qrcard span{color:#444}
 /* Shopping list */
 .linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--indigo);text-decoration:underline;cursor:pointer}
 .shopadd{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin:0 0 10px}
@@ -342,7 +347,8 @@ const DAYS=[
  {id:"d8",dow:"SUN",d:8,sun:"4:40",gold:"3:55",blue:"5:05",spot:"You're still in the air at Tokyo sunset. No photo plan tonight. Rest up.",title:"Arrival",note:"Land, private car in, sleep.",stops:[
   ["7:55 PM","Land at Narita T1 (ZG025)","Have your Visit Japan Web QR codes ready.","TRAVEL","Narita Airport Terminal 1"],
   ["8:45 PM","Private transfer to OMO5 (booked)","BOOKED. Large people carrier from Narita to OMO5 Tokyo Otsuka, about 1 hr 15 min. Flight tracking is on, so pickup adjusts if ZG025 is delayed, and the driver waits 45 min after landing at the meeting point. Check the Pick-up details tab in the booking app for the exact meeting point and driver contact. Note the app shows the flight as \"ZG*25\"; tap Edit flight details to confirm it reads ZG025.","TRAVEL","Narita Airport Terminal 1"],
-  ["10:00 PM","Check in at OMO5 Otsuka","Konbini snack run, then sleep.","TRAVEL","OMO5 Tokyo Otsuka"]]},
+  ["10:00 PM","Check in at OMO5 Otsuka","Konbini snack run, then sleep.","TRAVEL","OMO5 Tokyo Otsuka"],
+  ["10:15 PM","Create your Tax-Free QR code","TO DO before bed. In Visit Japan Web, open Procedure for Tax-Free Shopping and Tax Refund and scan the landing permission seal (the QR sticker) that immigration put in your passport. This makes the Tax-Free QR code you show at stores, starting with Yodobashi on Monday morning, and sets up the refund at Narita on 11/13. Takes about 5 minutes.","TODO",null]]},
  {id:"d9",dow:"MON",d:9,sun:"4:39",gold:"3:54",blue:"5:04",spot:"Golden hour: the zelkova trees on Omotesando glow as you walk from Cat Street to mofusand. Blue hour: Omotesando and Shibuya light up before your 6:30 dinner.",title:"Camera, clothes, Shibuya",note:"Shinjuku → Harajuku → Shibuya → Ikebukuro",stops:[
   ["10:00 AM","Ikedaya Tea Store","Marukyu Koyamaen. Be there at opening, before grades sell out. It's in Odakyu Ace South, inside Shinjuku Station.","TEA","Ikedaya TeaStore Matcha Shinjuku"],
   ["10:20 AM", "Yodobashi Camera Shinjuku", "Bring your passport for tax-free. FILM: stock up at the film counter. For this trip, plan on about 4 rolls of Portra 400 (golden hour) and 4–6 of CineStill 800T (night), plus 1–2 spares. LENS: ask for the Panasonic LEICA DG SUMMILUX 25mm F1.4 (Micro Four Thirds). The Mark II is H-XA025; the cheaper Mark I is H-X025, so check both new and in the used case. BEAUTY: find the YA-MAN Photo PLUS Shiny face device on the beauty-appliance floor (about ¥55,000; the newer Shiny Neo is ¥69,300). Show staff your screenshot, ask for a US-compatible charger (海外で使えますか, kaigai de tsukaemasu ka?), and buy tax-free. Backups: Isetan beauty floors (1:10 today) or Bic Camera Ikebukuro near the hotel.", "CAMERA", "Yodobashi Camera Shinjuku General Camera store"],
@@ -401,7 +407,7 @@ const DAYS=[
   ["5:00 PM", "Car pickup at OMO5 to Narita", "Car from the hotel to Narita Terminal 1, about 60–90 min depending on traffic. Do the tax-free kiosk before check-in. ZG026 departs 9:25 PM.", "TRAVEL", "Narita Airport Terminal 1"]]}
 ];
  
-const CAT={FOOD:"food",DINNER:"food",OMAKASE:"food",SNACK:"sweet",SWEETS:"sweet",TEA:"sweet",MATCHA:"sweet",BAKERY:"sweet",BARS:"bars",WHISKY:"bars",PHOTO:"photo",FILM:"photo",DEVELOP:"photo",SHOP:"shop",CLOTHES:"shop",CAMERA:"shop",ART:"art",BIRTHDAY:"special",SAUNA:"special",CLASS:"special",BLOCK:"special",KIMONO:"special",TRAVEL:"travel",FREE:"travel"};
+const CAT={FOOD:"food",DINNER:"food",OMAKASE:"food",SNACK:"sweet",SWEETS:"sweet",TEA:"sweet",MATCHA:"sweet",BAKERY:"sweet",BARS:"bars",WHISKY:"bars",PHOTO:"photo",FILM:"photo",DEVELOP:"photo",SHOP:"shop",CLOTHES:"shop",CAMERA:"shop",ART:"art",BIRTHDAY:"special",SAUNA:"special",CLASS:"special",BLOCK:"special",KIMONO:"special",TRAVEL:"travel",FREE:"travel",TODO:"special"};
 const BOOK_NOW=[
  ["sushi","Sushi Tokyo Ten Shibuya","Mon 11/9 · 6:30 PM","Booked.",null],
 ["sushiden","Ginza Sushi Den","Tue 11/10 · 5:00 PM","Booked.",null],
@@ -420,7 +426,8 @@ const BOOK_OPT=[
 ];
 const PREP=[
  ["passport","Passport valid through the trip","Now","US citizens don't need a visa for up to 90 days.",null],
- ["vjw","Visit Japan Web","1–2 weeks out","Optional, but it gives you QR codes for faster immigration and customs. Screenshot them. Ignore JESTA, which doesn't start until 2028 or later.","https://www.vjw.digital.go.jp/"],
+ ["vjw","Visit Japan Web","Done","Registration complete. Show the QR code from the Visit Japan Web app (it is not included in this public copy). Ignore JESTA, which doesn't start until 2028 or later.","https://www.vjw.digital.go.jp/"],
+ ["taxfreeqr","Scan your landing seal for the Tax-Free QR","Sun 11/8 · after landing, before Monday's shopping","In Visit Japan Web, open Procedure for Tax-Free Shopping and Tax Refund and scan the landing permission seal (the sticker with a QR code) that immigration puts in your passport. This creates your Tax-Free QR code to show at stores, and sets up the refund at Narita on 11/13. Do it at the hotel Sunday night so it's ready for Yodobashi on Monday morning.","https://www.vjw.digital.go.jp/"],
  ["meds","Check your medications","Before packing","Some common US medicines, including pseudoephedrine (Sudafed), aren't allowed in Japan.",null],
  ["zipbag","ZIPAIR checked bag + meals","Before you fly","Bags and food aren't included in the fare. The carry-on limit is tight, so add a bag for the way home.",null],
  ["suica","Suica in Apple Wallet","Before you fly","Add it and load it.",null],

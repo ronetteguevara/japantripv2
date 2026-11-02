@@ -162,8 +162,10 @@ ol.stops li.cat-shop{border-left-color:var(--c-shop)} ol.stops li.cat-art{border
 @media (max-width:380px){.nav .navbtn,.nav .navlink{font-size:13px;padding:8px 4px}}
  
 /* VJW QR */
+.qrjump{border:0;cursor:pointer;width:max-content;margin-top:6px}
+#vjwqr{scroll-margin-top:80px}
 .qrcard{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
-.qrcard img{width:100%;max-width:300px;height:auto;aspect-ratio:1;image-rendering:pixelated;background:#fff;padding:8px;border-radius:6px}
+.qrcard .qrsvg{display:block;width:100%;max-width:300px;height:auto;aspect-ratio:1;background:#fff;border-radius:6px}
 .qrcard div{flex:1 1 200px;min-width:0;font-size:15px}
 .qrcard span{color:#444}
 /* Shopping list */
@@ -479,6 +481,7 @@ function showTab(t){
   store.set("tt-tab",t);
 }
 document.querySelectorAll("nav.tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+ 
  
 buildPicker();
 const SHOTS=[
